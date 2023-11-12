@@ -15,7 +15,7 @@ let g1 n =
 
 (*sin && ni || ni if-then-else*)
 let g2 n =
-  match n with
-  | n when (n >= 0, n mod 2 = 0) -> true
-  | n when (n mod 2 = -1) -> true
-  | _ -> false;;
+  match n >= 0, n mod 2 with
+  | true, 0 -> true
+  | true, -1 -> true
+  | _ -> false
