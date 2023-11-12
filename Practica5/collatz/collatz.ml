@@ -8,10 +8,7 @@ let rec orbit n =
   else
     let next = f n in
     let orbit_str = orbit next in
-    if n = 2 then
-      string_of_int n ^ ", " ^ orbit_str
-    else
-      string_of_int n ^ ", " ^ orbit_str
+    string_of_int n ^ ", " ^ orbit_str
 
 (*numero de pasos necesarios para llegar hasta el 1*)
 let rec length n =

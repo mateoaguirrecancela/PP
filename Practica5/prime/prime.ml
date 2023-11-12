@@ -1,11 +1,11 @@
-(* Función para determinar si un número es primo *)
+(*determinar si un numero es primo*)
 let is_prime n =
   let rec check_from i =
     i >= n || (n mod i <> 0 && check_from (i+1))
   in
   check_from 2;;
 
-(* Función para encontrar el primer número primo mayor que n *)
+(*encontrar el primer numero primo mayor que n*)
 let next_prime n =
   let rec find_prime m =
     if is_prime m then
@@ -15,7 +15,7 @@ let next_prime n =
   in
   find_prime (n+1);;
 
-(* Función para encontrar el mayor primo menor o igual que n *)
+(*encontrar el mayor primo menor o igual que n*)
 let last_prime_to n =
   let rec find_prime m =
     if is_prime m && m <= n then
@@ -27,7 +27,7 @@ let last_prime_to n =
   in
   find_prime n;;
 
-(* Función is_prime2 más eficiente *)
+(*mas eficiente*)
 let is_prime2 n =
   if n <= 1 then
     false
@@ -37,6 +37,6 @@ let is_prime2 n =
     false
   else
     let rec check_from i =
-      i * i > n || (n mod i <> 0 && check_from (i+6))
+      i * i > n || (n mod i <> 0 && n mod (i + 2) <> 0 && check_from (i + 6))
     in
     check_from 5;;
