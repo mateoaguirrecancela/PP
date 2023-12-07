@@ -1,37 +1,27 @@
-let rec not_attacked x queen_positions =
-  List.for_all
-    (fun (y, _) ->
-      x <> y && abs (x - y) <> abs (List.length queen_positions + 1 - snd _))
-    queen_positions
+(* queens.ml *)
 
-let rec add_queen n queen_positions acc =
-  if n = 0 then [queen_positions] @ acc
+let rec conflict (r, c) queens =
+  List.exists (fun (r', c') -> r = r' || c = c' || abs (r - r') = abs (c - c')) queens
+
+let rec place_queen n row queens =
+  if row > n then [queens]
   else
-    let valid_positions =
-      List.filter
-        (fun x -> not_attacked x queen_positions)
-        (List.init n (fun x -> x + 1))
+    let try_place col =
+      if not (conflict (row, col) queens) then
+        place_queen n (row + 1) ((row, col) :: queens)
+      else []
     in
-    List.fold_left
-      (fun acc' pos ->
-        add_queen
-          (n - 1)
-          ((n, pos) :: queen_positions)
-          (List.rev_append acc' acc))
-      [] valid_positions
+    List.flatten (List.map try_place (List.init n succ))
 
 let queens n =
-  if n < 0 then invalid_arg "queens"
-  else add_queen n [] []
+  if n < 0 then invalid_arg "queens: negative dimension";
+  place_queen n 1 []
 
 let is_queens_sol n sol =
-  if n < 0 || List.length sol <> n then invalid_arg "is_queens_sol"
-  else
-    let rec not_attacked' x queen_positions =
-      List.for_all
-        (fun (y, _) -> x <> y && abs (x - y) <> abs (List.length queen_positions + 1 - snd _))
-        queen_positions
-    in
-    List.for_all
-      (fun (x, y) -> not_attacked' x (List.rev_append (List.tl sol) [(x, y)]))
-      sol
+  let rec valid_solution queens =
+    match queens with
+    | [] -> true
+    | (r, c) :: rest ->
+        not (conflict (r, c) rest) && valid_solution rest
+  in
+  List.length sol = n && valid_solution sol

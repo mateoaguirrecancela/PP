@@ -1,68 +1,82 @@
 open Bintree
 
-let is_bst ord tree =
-  let rec is_bst_helper min_value max_value = function
+let is_bst cmp tree =
+  let rec is_bst_helper node min_bound max_bound =
+    match node with
     | Empty -> true
-    | Node (value, left, right) ->
-        ord min_value value && ord value max_value
-        && is_bst_helper min_value value left
-        && is_bst_helper value max_value right
+    | Node (left, value, right) ->
+        cmp min_bound value && cmp value max_bound
+        && is_bst_helper left min_bound value
+        && is_bst_helper right value max_bound
   in
-  is_bst_helper min_int max_int tree
+  is_bst_helper tree min_bound_of_cmp max_bound_of_cmp
 
 let bfs tree =
-  let rec bfs_helper queue acc =
+  let rec bfs' queue acc =
     match queue with
     | [] -> List.rev acc
-    | Empty :: tl -> bfs_helper tl acc
-    | Node (value, left, right) :: tl ->
+    | Empty :: tl -> bfs' tl acc
+    | Node (left, value, right) :: tl ->
         let new_queue = tl @ [left; right] in
-        bfs_helper new_queue (value :: acc)
+        bfs' new_queue (value :: acc)
   in
-  bfs_helper [tree] []
+  bfs' [tree] []
 
 let bfs' tree =
-  let rec bfs_helper queue acc =
+  let rec bfs'' queue acc =
     match queue with
     | [] -> List.rev acc
-    | Empty :: tl -> bfs_helper tl acc
-    | Node (value, left, right) :: tl ->
+    | Empty :: tl -> bfs'' tl acc
+    | Node (left, value, right) :: tl ->
         let new_queue = tl @ [left; right] in
-        bfs_helper new_queue (value :: acc)
+        bfs'' new_queue (value :: acc)
   in
-  bfs_helper [tree] []
+  bfs'' [tree] []
 
 let perfecto tree =
-  let rec perfecto_helper depth = function
-    | Empty -> depth = 0
-    | Node (_, left, right) ->
-        perfecto_helper (depth - 1) left && perfecto_helper (depth - 1) right
-  in
-  let rec depth = function
+  let rec height t =
+    match t with
     | Empty -> 0
-    | Node (_, left, _) -> 1 + depth left
+    | Node (left, _, right) -> 1 + max (height left) (height right)
   in
-  perfecto_helper (depth tree) tree
+  let rec node_count t h =
+    match t with
+    | Empty -> 0
+    | Node (left, _, right) when h = 1 -> 1
+    | Node (left, _, right) -> node_count left (h - 1) + node_count right (h - 1)
+  in
+  let h = height tree in
+  let n = node_count tree h in
+  n = int_of_float (2. ** float_of_int h) - 1
 
 let casi_completo tree =
-  let rec count_nodes = function
-    | Empty -> 0
-    | Node (_, left, right) -> 1 + count_nodes left + count_nodes right
+  let rec level_check level nodes =
+    match nodes with
+    | [] -> true
+    | Empty :: tl -> level_check (level - 1) tl
+    | Node (left, _, right) :: tl when level > 0 ->
+        level_check (level - 1) (left :: right :: tl)
+    | Node (_, _, _) :: _ -> level_check (level - 1) tl
   in
-  let rec casi_completo_helper depth = function
-    | Empty -> depth = 0
-    | Node (_, left, right) ->
-        casi_completo_helper (depth - 1) left && casi_completo_helper (depth - 1) right
+  let rec last_level_check level nodes =
+    match nodes with
+    | [] -> true
+    | Empty :: tl -> last_level_check (level - 1) tl
+    | Node (left, _, right) :: tl when level > 1 ->
+        last_level_check (level - 1) (left :: right :: tl)
+    | Node (left, _, right) :: tl -> left = Empty && right = Empty
   in
-  let rec depth = function
-    | Empty -> 0
-    | Node (_, left, _) -> 1 + depth left
+  let rec check_all_levels tree =
+    let rec level_nodes level queue =
+      match queue with
+      | [] -> []
+      | Empty :: tl -> Empty :: level_nodes level tl
+      | Node (left, _, right) :: tl ->
+          Node (left, 0, right) :: level_nodes level tl
+    in
+    let level = level_of_tree tree in
+    let level_nodes = level_nodes level [tree] in
+    if level_check level level_nodes then last_level_check level level_nodes
+    else false
   in
-  let node_count = count_nodes tree in
-  let max_depth = depth tree in
-  (pow 2 max_depth - 1) <= node_count && node_count < pow 2 (max_depth + 1)
-
-(* Exponential function for integer powers *)
-let rec pow base exp =
-  if exp = 0 then 1
-  else base * pow base (exp - 1)
+  check_all_levels tree
