@@ -1,5 +1,3 @@
-(* bintree_opt.ml *)
-
 open Bintree
 
 let is_bst ord tree =
