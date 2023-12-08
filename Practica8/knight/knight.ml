@@ -1,5 +1,3 @@
-(* knight.ml *)
-
 exception Not_found
 
 (* Función auxiliar para verificar si una casilla está dentro del tablero *)
