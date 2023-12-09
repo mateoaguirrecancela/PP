@@ -1,3 +1,4 @@
+(*
 open Bintree
 
 let is_bst cmp tree =
@@ -80,3 +81,65 @@ let casi_completo tree =
     else false
   in
   check_all_levels tree
+*)
+
+(* bintree_opt.ml *)
+
+open Bintree
+
+(* Función is_bst para verificar si un árbol es de búsqueda *)
+let is_bst ord tree =
+  let rec aux min_val max_val = function
+    | Empty -> true
+    | Node (value, left, right) ->
+      ord min_val value && ord value max_val &&
+      aux min_val value left && aux value max_val right
+  in
+  aux min_int max_int tree
+
+(* Función bfs para el recorrido en anchura del árbol *)
+let bfs tree =
+  let rec aux queue acc =
+    match queue with
+    | [] -> List.rev acc
+    | Empty :: rest -> aux rest acc
+    | Node (value, left, right) :: rest ->
+      aux (rest @ [left; right]) (value :: acc)
+  in
+  aux [tree] []
+
+(* Función bfs' para el recorrido en anchura de manera recursiva terminal *)
+let bfs' tree =
+  let rec aux queue acc =
+    match queue with
+    | [] -> List.rev acc
+    | Empty :: rest -> aux rest acc
+    | Node (value, left, right) :: rest ->
+      aux (rest @ [left; right]) (value :: acc)
+  in
+  aux [tree] []
+
+(* Función perfecto para verificar si un árbol es perfecto *)
+let perfecto tree =
+  let rec altura = function
+    | Empty -> 0
+    | Node (_, left, _) -> 1 + altura left
+  in
+  let rec aux h = function
+    | Empty -> h = 0
+    | Node (_, left, right) ->
+      altura left = altura right &&
+      aux (h - 1) left &&
+      aux (h - 1) right
+  in
+  aux (altura tree) tree
+
+(* Función casi_completo para verificar si un árbol es casi completo *)
+let casi_completo tree =
+  let rec aux nivel = function
+    | Empty -> nivel = 0
+    | Node (_, left, right) ->
+      (aux (nivel - 1) left && aux (nivel - 1) right) ||
+      (nivel = 1 && left = Empty && right = Empty)
+  in
+  aux (altura tree) tree
