@@ -8,13 +8,19 @@ let rec isort = function
     [] -> []
   | h::t -> insert h (isort t)
 
-(*lista decreciente*)
-let rec dlist n =
-  if n <= 0 then []
-  else n :: dlist (n - 1)
+(*lista aleatoria*)
+let rec rlist_with_range n min max =
+  if n < 0 then []
+  else (Random.int (max - min + 1) + min) :: rlist_with_range (n - 1) min max
+
+let rlist n =
+  let min_value = 0 in
+  let max_value = 10000 in
+  rlist_with_range n min_value max_value
+
 
 (*lista muy grande*)
-let bigl = dlist 200000
+let bigl = List.init 200000 (fun x -> (10000 - x))
 
 (*implementaciones recursivas terminales*)
 let insert_t x lst =
@@ -32,21 +38,7 @@ let isort_t lst =
     | h :: t -> isort_acc (insert_t h acc) t
   in
   isort_acc [] lst
-
-(*lista aleatoria*)
-let rec rlist n =
-  if n <= 0 then []
-  else Random.int 1000 :: rlist (n - 1)
   
-(*lista creciente*)
-let rec clist n =
-  if n <= 0 then []
-  else n :: clist (n + 1)
-
-(* Uso de la función *)
-let lista_creciente = clist 1
-
-
 (*tiempo de ejecucion*)
 let crono f x =
   let t = Sys.time () in
@@ -54,11 +46,11 @@ let crono f x =
   Sys.time () -. t
 
 (*listas*)
-let lc1 = clist 10000
-let lc2 = clist 20000
+let lc1 = List.init 10000 (fun x -> x)
+let lc2 = List.init 20000 (fun x -> x)
 
-let ld1 = dlist 10000
-let ld2 = dlist 20000
+let ld1 = List.init 10000 (fun x -> (10000 - x))
+let ld2 = List.init 20000 (fun x -> (20000 - x))
 
 let lr1 = rlist 10000
 let lr2 = rlist 20000
@@ -85,7 +77,6 @@ let check_isort_lists () =
     List.sort compare l1 = List.sort compare l2
   in
 
-  (* Comprobar igualdad *)
   assert (equal_lists result_isort_lc1 result_isort_t_lc1);
   assert (equal_lists result_isort_lc2 result_isort_t_lc2);
 
@@ -95,9 +86,7 @@ let check_isort_lists () =
   assert (equal_lists result_isort_lr1 result_isort_t_lr1);
   assert (equal_lists result_isort_lr2 result_isort_t_lr2);
 
-  printf "¡Ambas funciones producen el mismo resultado!\n"
-
-check_isort_lists()
+  Printf.printf "isort_t produce el mismo resultado que isort en todas las listas\n"
 
 (*medicion del tiempo de ejecucion*)
 let tc1 = crono isort lc1
@@ -118,21 +107,29 @@ let ttr1 = crono isort_t lr1
 let tr2 = crono isort lr2
 let ttr2 = crono isort_t lr2
 
-printf "Tiempo de ejecución de isort en lc1: %f segundos\n" tc1;
-printf "Tiempo de ejecución de isort_t en lc1: %f segundos\n" ttc1;
-printf "Tiempo de ejecución de isort en lc2: %f segundos\n" tc2;
-printf "Tiempo de ejecución de isort_t en lc2: %f segundos\n" ttc2;
-printf "Tiempo de ejecución de isort en ld1: %f segundos\n" td1;
-printf "Tiempo de ejecución de isort_t en ld1: %f segundos\n" ttd1;
-printf "Tiempo de ejecución de isort en ld2: %f segundos\n" td2;
-printf "Tiempo de ejecución de isort_t en ld2: %f segundos\n" ttd2;
-printf "Tiempo de ejecución de isort en lr1: %f segundos\n" tr1;
-printf "Tiempo de ejecución de isort_t en lr1: %f segundos\n" ttr1;
-printf "Tiempo de ejecución de isort en lr2: %f segundos\n" tr2
-printf "Tiempo de ejecución de isort_t en lr2: %f segundos\n" ttr2
+(*
+Printf.printf "Tiempo de ejecución de isort en lc1: %f segundos\n" tc1
+Printf.printf "Tiempo de ejecución de isort_t en lc1: %f segundos\n" ttc1
+Printf.printf "Tiempo de ejecución de isort en lc2: %f segundos\n" tc2
+Printf.printf "Tiempo de ejecución de isort_t en lc2: %f segundos\n" ttc2
+Printf.printf "Tiempo de ejecución de isort en ld1: %f segundos\n" td1
+Printf.printf "Tiempo de ejecución de isort_t en ld1: %f segundos\n" ttd1
+Printf.printf "Tiempo de ejecución de isort en ld2: %f segundos\n" td2
+Printf.printf "Tiempo de ejecución de isort_t en ld2: %f segundos\n" ttd2
+Printf.printf "Tiempo de ejecución de isort en lr1: %f segundos\n" tr1
+Printf.printf "Tiempo de ejecución de isort_t en lr1: %f segundos\n" ttr1
+Printf.printf "Tiempo de ejecución de isort en lr2: %f segundos\n" tr2
+Printf.printf "Tiempo de ejecución de isort_t en lr2: %f segundos\n" ttr2
+*)
 
-(*explicacion de los tiempos de ejecucion*)
-
+(*
+Observando los tiempos de ejecucion, isort_t es mucho eficiente en todos los casos,
+excepto en las listas descendentes que tarda mas que isort. La gran diferencia de tiempos
+entre estas dos implementaciones es debida a que la version recursiva terminal evita
+el desbordamiento del stack de llamadas. Sin embargo, en la lista desordenada isort_t
+produce tiempos mas altos debido a la naturaleza de la funcion, en esta situacion las
+inserciones se deben hacer al final de la lista y es aqui donde mas sufre esta funcion
+*)
 
 (*implementacion recursiva terminal que tome como argumento la relacion de orden que se desea emplear para la ordenacion*)
 let rec insert_g cmp x lst =
@@ -150,7 +147,6 @@ let isort_g cmp lst =
     | h :: t -> isort_acc (insert_g cmp h acc) t
   in
   isort_acc [] lst
-
 
 
 (*ordenacion por fusion*)
@@ -173,34 +169,36 @@ let rec msort l = match l with
 let check_msort_isort () =
   let result_msort_lc1 = msort lc1 in
   let result_isort_lc1 = isort lc1 in
-  assert (equal_lists result_msort_lc1 result_isort_lc1);
-
   let result_msort_lc2 = msort lc2 in
   let result_isort_lc2 = isort lc2 in
-  assert (equal_lists result_msort_lc2 result_isort_lc2);
 
   let result_msort_ld1 = msort ld1 in
   let result_isort_ld1 = isort ld1 in
-  assert (equal_lists result_msort_ld1 result_isort_ld1);
-
   let result_msort_ld2 = msort ld2 in
   let result_isort_ld2 = isort ld2 in
-  assert (equal_lists result_msort_ld2 result_isort_ld2);
 
   let result_msort_lr1 = msort lr1 in
   let result_isort_lr1 = isort lr1 in
-  assert (equal_lists result_msort_lr1 result_isort_lr1);
-
   let result_msort_lr2 = msort lr2 in
   let result_isort_lr2 = isort lr2 in
+
+  let equal_lists l1 l2 =
+    List.sort compare l1 = List.sort compare l2
+  in
+
+  assert (equal_lists result_msort_lc1 result_isort_lc1);
+  assert (equal_lists result_msort_lc2 result_isort_lc2);
+
+  assert (equal_lists result_msort_ld1 result_isort_ld1);
+  assert (equal_lists result_msort_ld2 result_isort_ld2);
+
   assert (equal_lists result_msort_lr2 result_isort_lr2);
+  assert (equal_lists result_msort_lr1 result_isort_lr1);
 
-  printf "¡msort produce el mismo resultado que isort en todas las listas!\n"
-
-check_msort_isort ()
+  Printf.printf "msort produce el mismo resultado que isort en todas las listas\n"
 
 (*lista muy grande*)
-let bigl2 = dlist 200000
+let bigl2 = List.init 200000 (fun x -> (10000 - x))
 
 (*implementaciones recursivas terminales*)
 let rec split_t lst =
@@ -228,7 +226,6 @@ let rec msort' l =
     merge_t (msort' l1, msort' l2)
 
 (*lista muy grande*)
-(*let bigl3 = dlist 260000*)
 let bigl3 = []
 
 (*
@@ -246,26 +243,40 @@ let t_msort'_ld2 = crono msort' ld2
 let t_msort'_lr1 = crono msort' lr1
 let t_msort'_lr2 = crono msort' lr2
 
-printf "Tiempo de ejecución de msort' en lc1: %f segundos\n" t_msort'_lc1;
-printf "Tiempo de ejecución de msort' en lc2: %f segundos\n" t_msort'_lc2;
-printf "Tiempo de ejecución de msort' en ld1: %f segundos\n" t_msort'_ld1;
-printf "Tiempo de ejecución de msort' en ld2: %f segundos\n" t_msort'_ld2;
-printf "Tiempo de ejecución de msort' en lr1: %f segundos\n" t_msort'_lr1;
-printf "Tiempo de ejecución de msort' en lr2: %f segundos\n" t_msort'_lr2;
+(*
+Printf.printf "Tiempo de ejecución de msort' en lc1: %f segundos\n" t_msort'_lc1;
+Printf.printf "Tiempo de ejecución de msort' en lc2: %f segundos\n" t_msort'_lc2;
+Printf.printf "Tiempo de ejecución de msort' en ld1: %f segundos\n" t_msort'_ld1;
+Printf.printf "Tiempo de ejecución de msort' en ld2: %f segundos\n" t_msort'_ld2;
+Printf.printf "Tiempo de ejecución de msort' en lr1: %f segundos\n" t_msort'_lr1;
+Printf.printf "Tiempo de ejecución de msort' en lr2: %f segundos\n" t_msort'_lr2;
+*)
+
+(*
+Los tiempos de ejecucion de msort' son muy buenos listas ordenadas, invertidas y aleatorias. Esto se debe a la gran eficiencia que tiene la naturaleza del algortimo,
+la implementación aprovecha el algoritmo divide y venceras para lograr tiempos de ejecución eficientes. split_t genera sublistas que contienen muchos menos elementos
+que a merge_t le reduce el esfuerzo necesario para poder combinarlas
+*)
 
 (*comparacion de los tiempos de ejecucion*)
 let t_msort_lr1 = crono msort lr1
 let t_msort_lr2 = crono msort lr2
 
-printf "Tiempo de ejecución de msort en lr1: %f segundos\n" t_msort_lr1;
-printf "Tiempo de ejecución de msort' en lr1: %f segundos\n" t_msort'_lr1;
-printf "Tiempo de ejecución de msort en lr2: %f segundos\n" t_msort_lr2;
-printf "Tiempo de ejecución de msort' en lr2: %f segundos\n" t_msort'_lr2;
+(*
+Printf.printf "Tiempo de ejecución de msort en lr1: %f segundos\n" t_msort_lr1;
+Printf.printf "Tiempo de ejecución de msort' en lr1: %f segundos\n" t_msort'_lr1;
+Printf.printf "Tiempo de ejecución de msort en lr2: %f segundos\n" t_msort_lr2;
+Printf.printf "Tiempo de ejecución de msort' en lr2: %f segundos\n" t_msort'_lr2;
+*)
 
-(*explicacion de los tiempos de ejecucion*)
+(*
+En este caso es mas eficiente la version no rescursiva terminal que la recursiva terminal. Esto se debe a que msort puede ser mas eficiente en algunos casos, como este,
+ya que evita el costo de creacion de marcos de pila adicionales para cada llamada recursiva. En cambio, lo que hace es utilizar un enfoque iterativo que puede es mas
+eficiente en terminos de consumo de memoria y tiempo de ejecucion para estos casos
+*)
 
 (*implementacion que tome como argumento la relacion de orden a emplear*)
-let rec split_t lst =
+let rec split_g lst =
   let rec split_acc acc1 acc2 = function
     | [] -> (List.rev acc1, List.rev acc2)
     | h1::h2::t -> split_acc (h1 :: acc1) (h2 :: acc2) t
@@ -273,7 +284,7 @@ let rec split_t lst =
   in
   split_acc [] [] lst
 
-let rec merge_t cmp (l1, l2) =
+let rec merge_g cmp (l1, l2) =
   let rec merge_acc acc l1 l2 = match l1, l2 with
     | [], l | l, [] -> List.rev_append acc l
     | h1::t1, h2::t2 ->
@@ -286,5 +297,5 @@ let rec msort_g cmp l =
   match l with
   | [] | [_] -> l
   | _ ->
-    let (l1, l2) = split_t l in
-    merge_t cmp (msort_g cmp l1, msort_g cmp l2)
+    let (l1, l2) = split_g l in
+    merge_g cmp (msort_g cmp l1, msort_g cmp l2)
