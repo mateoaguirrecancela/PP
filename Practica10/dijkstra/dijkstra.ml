@@ -1,5 +1,3 @@
-(* dijkstra.ml *)
-
 exception Invalid_argument of string
 
 type 'a queue = Empty | Node of 'a * 'a queue * 'a queue
